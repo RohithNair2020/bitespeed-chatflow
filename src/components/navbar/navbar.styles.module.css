@@ -1,5 +1,14 @@
 .navbarContainer {
     width: 100%;
     height: 60px;
-    background-color: red;
+    background-color: #457AE4;
+    padding: 10px 30px;
+    display: flex;
+    align-items: center;
+}
+
+.branding {
+    height: 40px;
+    width: auto;
+    cursor: pointer;
 }

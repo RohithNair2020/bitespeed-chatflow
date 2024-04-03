@@ -12,6 +12,7 @@ import ReactFlow, {
     applyNodeChanges,
 } from "reactflow";
 import "reactflow/dist/style.css";
+import { useNodeStore } from "../../Modules/NodeManager";
 
 interface IEditor {
     chatFlow: Chatflow;
@@ -19,6 +20,8 @@ interface IEditor {
 
 function Editor(props: IEditor) {
     const { chatFlow } = props;
+    const nodeStore = useNodeStore();
+    const messageNodes = nodeStore.nodes;
 
     const initialNodes = [
         { id: "1", position: { x: 0, y: 0 }, data: { label: "1" } },
@@ -42,28 +45,46 @@ function Editor(props: IEditor) {
 
     useEffect(() => {
         console.log(chatFlow);
-    });
+    }, []);
 
     return (
         <div className={styles.editorContainer}>
             <section className={styles.leftSidebar}></section>
-            <section className={styles.flowEditor}>
-                <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                >
-                    <Controls />
-                    <MiniMap />
-                    <Background
-                        variant={BackgroundVariant.Dots}
-                        gap={12}
-                        size={1}
-                    />
-                </ReactFlow>
+            <section className={styles.flowEditorContainer}>
+                <div className={styles.flowEditor}>
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                    >
+                        <Controls />
+                        <MiniMap />
+                        <Background
+                            variant={BackgroundVariant.Dots}
+                            gap={12}
+                            size={1}
+                        />
+                    </ReactFlow>
+                </div>
             </section>
-            <section className={styles.rightSidebar}></section>
+            <section className={styles.rightSidebar}>
+                <div style={{ display: "flex", gap: "10px" }}>
+                    {messageNodes.map((node) => (
+                        <div
+                            style={{
+                                flexBasis: "50%",
+                                flex: "1",
+                                height: "100px",
+                                border: "2px solid tomato",
+                            }}
+                            key={node.name}
+                        >
+                            <h3>{node.name}</h3>
+                        </div>
+                    ))}
+                </div>
+            </section>
         </div>
     );
 }
