@@ -6,7 +6,7 @@ interface INode {
     messageType: new () => Message
 }
 
-class Node implements INode {
+export class Node implements INode {
     name: string;
     icon: string = '';
     messageType: new () => Message

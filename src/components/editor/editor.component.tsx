@@ -12,7 +12,7 @@ import ReactFlow, {
     applyNodeChanges,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { useNodeStore } from "../../Modules/NodeManager";
+import { Node, useNodeStore } from "../../Modules/NodeManager";
 // import { toast } from "react-toastify";
 
 interface IEditor {
@@ -80,6 +80,18 @@ function Editor(props: IEditor) {
     //     [reactFlowInstance]
     // );
 
+    const addNode = (node: Node) => {
+        // { id: "35", position: { x: 0, y: 100 }, data: { label: "2" } }
+        const newNode: any = {};
+        const messageType = node.messageType;
+        const message = new messageType();
+        newNode['id'] = message.id;
+        newNode['position'] = { x: 0, y: 200 };
+        newNode['data'] = { label: 'new node' }
+
+        setNodes([...nodes, newNode]);
+    }
+
     useEffect(() => {
         console.log(chatFlow);
     }, []);
@@ -92,6 +104,7 @@ function Editor(props: IEditor) {
                         <div
                             className={styles.messageNode}
                             key={node.name}
+                            onClick={() => addNode(node)}
                         >
                             <img className={styles.nodeImage} src={node.icon} alt="message-type-image" />
                             <p className={styles.nodeTitle}>{node.name}</p>
