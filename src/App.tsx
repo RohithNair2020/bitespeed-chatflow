@@ -1,3 +1,5 @@
+import { ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 import "./App.css";
 import { Chatflow } from "./Modules/Chatflow";
 import Editor from "./components/editor/editor.component";
@@ -9,6 +11,7 @@ function App() {
         <>
             <Navbar></Navbar>
             <Editor chatFlow={chatFlow}></Editor>
+            <ToastContainer position="bottom-center" autoClose={2000} hideProgressBar/>
         </>
     );
 }

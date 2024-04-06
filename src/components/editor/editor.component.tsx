@@ -13,6 +13,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { useNodeStore } from "../../Modules/NodeManager";
+// import { toast } from "react-toastify";
 
 interface IEditor {
     chatFlow: Chatflow;
@@ -20,14 +21,13 @@ interface IEditor {
 
 function Editor(props: IEditor) {
     const { chatFlow } = props;
-    const nodeStore = useNodeStore();
-    const messageNodes = nodeStore.nodes;
+    const messageNodes = useNodeStore().nodes;
 
     const initialNodes = [
-        { id: "1", position: { x: 0, y: 0 }, data: { label: "1" } },
-        { id: "2", position: { x: 0, y: 100 }, data: { label: "2" } },
+        { id: "43", position: { x: 0, y: 0 }, data: { label: "1" } },
+        { id: "35", position: { x: 0, y: 100 }, data: { label: "2" } },
     ];
-    const initialEdges = [{ id: "e1-2", source: "1", target: "2" }];
+    const initialEdges = [{ id: "e1-2", source: "43", target: "35" }];
 
     const [nodes, setNodes] = useState(initialNodes);
     const [edges, setEdges] = useState(initialEdges);
@@ -43,13 +43,62 @@ function Editor(props: IEditor) {
         [setEdges]
     );
 
+    // const onDragOver = useCallback((event: any) => {
+    //     event.preventDefault();
+    //     event.dataTransfer.dropEffect = "move";
+    // }, []);
+
+    // const onDrop = useCallback(
+    //     (event) => {
+    //         event.preventDefault();
+
+    //         const type = event.dataTransfer.getData("application/reactflow");
+
+    //         // check if the dropped element is valid
+    //         if (typeof type === "undefined" || !type) {
+    //             return;
+    //         }
+
+    //         let id = 0;
+    //         const getId = () => `dndnode_${id++}`;
+    //         // reactFlowInstance.project was renamed to reactFlowInstance.screenToFlowPosition
+    //         // and you don't need to subtract the reactFlowBounds.left/top anymore
+    //         // details: https://reactflow.dev/whats-new/2023-11-10
+    //         const position = reactFlowInstance.screenToFlowPosition({
+    //             x: event.clientX,
+    //             y: event.clientY,
+    //         });
+    //         const newNode = {
+    //             id: getId(),
+    //             type,
+    //             position,
+    //             data: { label: `${type} node` },
+    //         };
+
+    //         setNodes((nds) => nds.concat(newNode));
+    //     },
+    //     [reactFlowInstance]
+    // );
+
     useEffect(() => {
         console.log(chatFlow);
     }, []);
 
     return (
         <div className={styles.editorContainer}>
-            <section className={styles.leftSidebar}></section>
+            <section className={styles.leftSidebar}>
+                <div className={styles.nodesContainer}>
+                    {messageNodes.map((node) => (
+                        <div
+                            className={styles.messageNode}
+                            key={node.name}
+                        >
+                            <img className={styles.nodeImage} src={node.icon} alt="message-type-image" />
+                            <p className={styles.nodeTitle}>{node.name}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
             <section className={styles.flowEditorContainer}>
                 <div className={styles.flowEditor}>
                     <ReactFlow
@@ -57,6 +106,8 @@ function Editor(props: IEditor) {
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
+                        // onDrop={onDrop}
+                        // onDragOver={onDragOver}
                     >
                         <Controls />
                         <MiniMap />
@@ -68,23 +119,7 @@ function Editor(props: IEditor) {
                     </ReactFlow>
                 </div>
             </section>
-            <section className={styles.rightSidebar}>
-                <div style={{ display: "flex", gap: "10px" }}>
-                    {messageNodes.map((node) => (
-                        <div
-                            style={{
-                                flexBasis: "50%",
-                                flex: "1",
-                                height: "100px",
-                                border: "2px solid tomato",
-                            }}
-                            key={node.name}
-                        >
-                            <h3>{node.name}</h3>
-                        </div>
-                    ))}
-                </div>
-            </section>
+            {/* <section className={styles.rightSidebar}></section> */}
         </div>
     );
 }

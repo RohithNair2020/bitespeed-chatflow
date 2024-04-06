@@ -1,17 +1,26 @@
+import { v4 as genUuid } from 'uuid';
+
 export class Message {
+    id: string;
     type: 'text' | 'media' = 'text'; // Message type
     x: number = 0; // x-coordinate
     y: number = 0; // y-coordinate
     isEmpty: boolean = false; // empty message flag
+
+    constructor() {
+        this.id = genUuid(); 
+    }
+
+    setPosition(x: number, y: number) {
+        [this.x, this.y] = [x, y];
+    }
 }
 
 export class TextMessage extends Message {
-    icon: string;
     private _content: string = 'Enter message';
 
     constructor() {
         super();
-        this.icon = ''; // icon for the text message node
     }
 
     //? Sets the content and sets the empty flag if message is empty 
@@ -27,12 +36,10 @@ export class TextMessage extends Message {
 }
 
 export class MediaMessage extends Message {
-    icon: string;
     private _media: { [key: string]: object | string } = {};
 
     constructor() {
         super();
-        this.icon = '';
     }
 
     get media() {
