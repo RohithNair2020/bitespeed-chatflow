@@ -1,19 +1,19 @@
-import { MediaMessage, Message, TextMessage } from "./Message";
+import { MessageType } from "./Message";
 
 interface INode {
-    name: string,
     icon: string,
-    messageType: new () => Message
+    label: string,
+    messageType: MessageType
 }
 
 export class Node implements INode {
-    name: string;
+    label: string;
     icon: string = '';
-    messageType: new () => Message
+    messageType: MessageType
     constructor(config: INode) {
-        this.name = config.name;
-        this.icon = config.icon;
         this.messageType = config.messageType;
+        this.label = config.label;
+        this.icon = config.icon;
     }
 }
 
@@ -32,7 +32,7 @@ class NodeStore {
     }
 
     registerNode(node: Node) {
-        this._nodeMap.set(node.name, node);
+        this._nodeMap.set(node.messageType, node);
     }
 
     get nodes(): Array<Node> {
@@ -42,7 +42,7 @@ class NodeStore {
 
 export function useNodeStore(): NodeStore {
     const nodeStore = new NodeStore();
-    nodeStore.registerNode(new Node({ name: 'Text', 'icon': 'text-message.png', messageType: TextMessage}));
-    nodeStore.registerNode(new Node({ name: 'Media', 'icon': 'media-message.png', messageType: MediaMessage}));
+    nodeStore.registerNode(new Node({ label: 'Text', 'icon': 'text-message.png', messageType: 'text'}));
+    nodeStore.registerNode(new Node({ label: 'Media', 'icon': 'media-message.png', messageType: 'media'}));
     return nodeStore;
 }

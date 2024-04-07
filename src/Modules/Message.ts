@@ -1,48 +1,63 @@
-import { v4 as genUuid } from 'uuid';
-
-export class Message {
-    id: string;
-    type: 'text' | 'media' = 'text'; // Message type
-    x: number = 0; // x-coordinate
-    y: number = 0; // y-coordinate
-    isEmpty: boolean = false; // empty message flag
-
-    constructor() {
-        this.id = genUuid(); 
-    }
-
-    setPosition(x: number, y: number) {
-        [this.x, this.y] = [x, y];
-    }
+export type MessageType = 'text' | 'media';
+export interface IMessage {
+    isEmpty: () => boolean;
+    getContent: () => void;
+    setContent: (content: any) => void
 }
 
-export class TextMessage extends Message {
-    private _content: string = 'Enter message';
-
-    constructor() {
-        super();
-    }
+export class TextMessage implements IMessage {
+    private _content: string = '';
 
     //? Sets the content and sets the empty flag if message is empty 
     setContent(message: string) {
         this._content = message;
-        this.isEmpty = this._content.length ? false : true;
     }
 
     //? Returns the text content of the message
-    get content() {
+    getContent() {
         return this._content;
+    }
+
+    //? To check if empty
+    isEmpty(): boolean {
+        return !this._content.length;
     }
 }
 
-export class MediaMessage extends Message {
+export class MediaMessage implements IMessage {
     private _media: { [key: string]: object | string } = {};
 
-    constructor() {
-        super();
+    getContent() {
+        return this._media;
     }
 
-    get media() {
-        return this._media;
+    setContent(content: any) {
+        this._media = content;
+    }
+
+    isEmpty() {
+        return true;
+    }
+}
+
+export class MessageFactory {
+    private static _instance: MessageFactory | null = null;
+
+    constructor() {
+        if(!MessageFactory._instance) {
+            MessageFactory._instance = this;
+            return MessageFactory._instance;
+        }
+    }
+
+    createMessage(type: MessageType) {
+        switch(type) {
+            case 'text':
+                return new TextMessage();
+            case 'media':
+                return new MediaMessage();
+            default: 
+                return null;
+        }
     }
 }

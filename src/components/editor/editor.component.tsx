@@ -1,100 +1,102 @@
 import { useCallback, useEffect, useState } from "react";
 import styles from "./editor.styles.module.css";
-import { Chatflow } from "../../Modules/Chatflow";
 import ReactFlow, {
     Background,
     BackgroundVariant,
+    useNodesState,
+    useEdgesState,
     Controls,
     EdgeChange,
     MiniMap,
     NodeChange,
     applyEdgeChanges,
     applyNodeChanges,
+    addEdge,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Node, useNodeStore } from "../../Modules/NodeManager";
+import { MessageFactory, MessageType } from "../../Modules/Message";
+import { v4 as generateId } from "uuid";
 // import { toast } from "react-toastify";
 
-interface IEditor {
-    chatFlow: Chatflow;
-}
-
-function Editor(props: IEditor) {
-    const { chatFlow } = props;
+function Editor() {
     const messageNodes = useNodeStore().nodes;
 
-    const initialNodes = [
-        { id: "43", position: { x: 0, y: 0 }, data: { label: "1" } },
-        { id: "35", position: { x: 0, y: 100 }, data: { label: "2" } },
-    ];
-    const initialEdges = [{ id: "e1-2", source: "43", target: "35" }];
-
-    const [nodes, setNodes] = useState(initialNodes);
-    const [edges, setEdges] = useState(initialEdges);
-
-    const onNodesChange = useCallback(
-        (changes: NodeChange[]) =>
-            setNodes((nds) => applyNodeChanges(changes, nds)),
-        [setNodes]
-    );
-    const onEdgesChange = useCallback(
-        (changes: EdgeChange[]) =>
-            setEdges((eds) => applyEdgeChanges(changes, eds)),
+    const initialNodes: any = [];
+    const initialEdges: any = [];
+    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const [reactFlowInstance, setReactFlowInstance] = useState(null);
+    const onConnect = useCallback(
+        (params) => setEdges((eds) => {
+            console.log(params, eds);
+            const existingEdge = eds.find(ed => ed.source === params.source);
+            if(existingEdge) return eds;
+            return addEdge(params, eds);
+        }),
         [setEdges]
     );
 
-    // const onDragOver = useCallback((event: any) => {
-    //     event.preventDefault();
-    //     event.dataTransfer.dropEffect = "move";
-    // }, []);
-
-    // const onDrop = useCallback(
-    //     (event) => {
-    //         event.preventDefault();
-
-    //         const type = event.dataTransfer.getData("application/reactflow");
-
-    //         // check if the dropped element is valid
-    //         if (typeof type === "undefined" || !type) {
-    //             return;
-    //         }
-
-    //         let id = 0;
-    //         const getId = () => `dndnode_${id++}`;
-    //         // reactFlowInstance.project was renamed to reactFlowInstance.screenToFlowPosition
-    //         // and you don't need to subtract the reactFlowBounds.left/top anymore
-    //         // details: https://reactflow.dev/whats-new/2023-11-10
-    //         const position = reactFlowInstance.screenToFlowPosition({
-    //             x: event.clientX,
-    //             y: event.clientY,
-    //         });
-    //         const newNode = {
-    //             id: getId(),
-    //             type,
-    //             position,
-    //             data: { label: `${type} node` },
-    //         };
-
-    //         setNodes((nds) => nds.concat(newNode));
-    //     },
-    //     [reactFlowInstance]
-    // );
-
-    const addNode = (node: Node) => {
-        // { id: "35", position: { x: 0, y: 100 }, data: { label: "2" } }
-        const newNode: any = {};
-        const messageType = node.messageType;
-        const message = new messageType();
-        newNode['id'] = message.id;
-        newNode['position'] = { x: 0, y: 200 };
-        newNode['data'] = { label: 'new node' }
-
-        setNodes([...nodes, newNode]);
-    }
-
-    useEffect(() => {
-        console.log(chatFlow);
+    const onDragOver = useCallback((event: any) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
     }, []);
+
+    const addNode = useCallback(
+        (
+            messageType: MessageType,
+            content?: any,
+            position: { x: number; y: number } = { x: 0, y: 100 }
+        ) => {
+            const messageFactory = new MessageFactory();
+            const message = messageFactory.createMessage(messageType);
+            message?.setContent(content);
+            const newNode: any = {
+                id: generateId(),
+                position,
+                data: message?.getContent(),
+            };
+
+            setNodes([...nodes, newNode]);
+        },
+        [nodes]
+    );
+
+    const onDrop = useCallback(
+        (event) => {
+            event.preventDefault();
+
+            const nodeData = event.dataTransfer.getData(
+                "application/reactflow"
+            );
+            const node = JSON.parse(nodeData);
+
+            if (!node) {
+                return;
+            }
+
+            if (reactFlowInstance) {
+                // @ts-expect-error react flow instance can be null
+                const position = reactFlowInstance.screenToFlowPosition({
+                    x: event.clientX,
+                    y: event.clientY,
+                });
+                addNode(node.messageType, { label: node.label }, position);
+            }
+        },
+        [reactFlowInstance, addNode]
+    );
+
+    const onDragStart = (event, node: Node) => {
+        event.dataTransfer.setData(
+            "application/reactflow",
+            JSON.stringify(node)
+        );
+        event.dataTransfer.effectAllowed = "move";
+    };
+
+    // useEffect(() => {
+    // }, []);
 
     return (
         <div className={styles.editorContainer}>
@@ -103,11 +105,17 @@ function Editor(props: IEditor) {
                     {messageNodes.map((node) => (
                         <div
                             className={styles.messageNode}
-                            key={node.name}
-                            onClick={() => addNode(node)}
+                            key={node.messageType}
+                            onClick={() => addNode(node.messageType)}
+                            onDragStart={(event) => onDragStart(event, node)}
+                            draggable
                         >
-                            <img className={styles.nodeImage} src={node.icon} alt="message-type-image" />
-                            <p className={styles.nodeTitle}>{node.name}</p>
+                            <img
+                                className={styles.nodeImage}
+                                src={node.icon}
+                                alt="message-type-image"
+                            />
+                            <p className={styles.nodeTitle}>{node.label}</p>
                         </div>
                     ))}
                 </div>
@@ -119,8 +127,11 @@ function Editor(props: IEditor) {
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
-                        // onDrop={onDrop}
-                        // onDragOver={onDragOver}
+                        onDragOver={onDragOver}
+                        onDrop={onDrop}
+                        onInit={setReactFlowInstance}
+                        onConnect={onConnect}
+                        fitView
                     >
                         <Controls />
                         <MiniMap />

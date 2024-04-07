@@ -1,13 +1,13 @@
-import { Message } from "./Message";
+import { IMessage } from "./Message";
 
 export class Chatflow {
-    private _messages: Array<Message> = [];
+    private _messages: Array<IMessage> = [];
     private _edges = [];
     private _isFaulty: boolean = false;
 
     constructor() {}
 
-    addMessage(message: Message) {
+    addMessage(message: IMessage) {
         this._messages.push(message);
     }
 
