@@ -1,6 +1,6 @@
 import { MessageType } from "./Message";
 
-interface INode {
+export interface INode {
     icon: string,
     label: string,
     messageType: MessageType
@@ -43,6 +43,6 @@ class NodeStore {
 export function useNodeStore(): NodeStore {
     const nodeStore = new NodeStore();
     nodeStore.registerNode(new Node({ label: 'Text', 'icon': 'text-message.png', messageType: 'text'}));
-    nodeStore.registerNode(new Node({ label: 'Media', 'icon': 'media-message.png', messageType: 'media'}));
+    // nodeStore.registerNode(new Node({ label: 'Media', 'icon': 'media-message.png', messageType: 'media'}));
     return nodeStore;
 }
